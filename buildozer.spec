@@ -17,3 +17,4 @@ log_level = 2
 android.permissions = INTERNET,RECORD_AUDIO
 android.api = 35
 android.minapi = 23
+android.accept_sdk_license = True
