@@ -3,43 +3,52 @@ name: Build O'ZBEK AI 10 APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
+
+env:
+  PYTHONFORANDROID_PREREQUISITES_INSTALL_INTERACTIVE: "0"
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Repositoryni yuklash
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Python o‘rnatish
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Android build muhitini tayyorlash
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            git \
-            zip \
-            unzip \
-            openjdk-17-jdk
-
+          sudo apt-get install -y build-essential git zip unzip
           pip install --upgrade pip
-          pip install buildozer
-          pip install cython
+          pip install --upgrade buildozer cython
 
-      - name: APK yaratish
+      - name: Prepare Android SDK
+        run: |
+          buildozer android p4a -- --help
+
+      - name: Accept Android SDK licenses
+        run: |
+          SDK="$HOME/.buildozer/android/platform/android-sdk"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" "build-tools;37.0.0" "platform-tools"
+
+      - name: Build APK
         run: |
           buildozer android debug
 
-      - name: APKni saqlash
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ozbekai-10-apk
